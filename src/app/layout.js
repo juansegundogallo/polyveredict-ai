@@ -1,6 +1,7 @@
 import './globals.css'
 
 export const metadata = {
+  metadataBase: new URL('https://polyverdict.ai'),
   title: 'PolyVerdict AI - AI-Powered Prediction Market Analysis',
   description: 'Get AI-powered analysis of Polymarket prediction markets. Find mispricings, track sentiment, and make smarter bets with our advanced trading signals.',
   keywords: 'polymarket, prediction markets, crypto, trading, AI analysis, arbitrage, betting',
