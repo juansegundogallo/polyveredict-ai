@@ -288,35 +288,40 @@ export default function App() {
   };
 
   // OAuth Configuration - Replace these with your actual OAuth app credentials
-  const OAUTH_CONFIG = {
-    google: {
-      clientId: 'YOUR_GOOGLE_CLIENT_ID', // Replace with your Google OAuth client ID
-      redirectUri: window.location.origin,
-      scope: 'email profile',
-      authUrl: 'https://accounts.google.com/o/oauth2/v2/auth'
-    },
-    twitter: {
-      clientId: 'YOUR_TWITTER_CLIENT_ID', // Replace with your Twitter/X OAuth client ID
-      redirectUri: window.location.origin,
-      scope: 'users.read tweet.read',
-      authUrl: 'https://twitter.com/i/oauth2/authorize'
-    },
-    discord: {
-      clientId: 'YOUR_DISCORD_CLIENT_ID', // Replace with your Discord OAuth client ID
-      redirectUri: window.location.origin,
-      scope: 'identify email',
-      authUrl: 'https://discord.com/api/oauth2/authorize'
-    },
-    apple: {
-      clientId: 'YOUR_APPLE_CLIENT_ID', // Replace with your Apple OAuth client ID
-      redirectUri: window.location.origin,
-      scope: 'name email',
-      authUrl: 'https://appleid.apple.com/auth/authorize'
-    }
+  const getOAuthConfig = () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return {
+      google: {
+        clientId: 'YOUR_GOOGLE_CLIENT_ID', // Replace with your Google OAuth client ID
+        redirectUri: origin,
+        scope: 'email profile',
+        authUrl: 'https://accounts.google.com/o/oauth2/v2/auth'
+      },
+      twitter: {
+        clientId: 'YOUR_TWITTER_CLIENT_ID', // Replace with your Twitter/X OAuth client ID
+        redirectUri: origin,
+        scope: 'users.read tweet.read',
+        authUrl: 'https://twitter.com/i/oauth2/authorize'
+      },
+      discord: {
+        clientId: 'YOUR_DISCORD_CLIENT_ID', // Replace with your Discord OAuth client ID
+        redirectUri: origin,
+        scope: 'identify email',
+        authUrl: 'https://discord.com/api/oauth2/authorize'
+      },
+      apple: {
+        clientId: 'YOUR_APPLE_CLIENT_ID', // Replace with your Apple OAuth client ID
+        redirectUri: origin,
+        scope: 'name email',
+        authUrl: 'https://appleid.apple.com/auth/authorize'
+      }
+    };
   };
 
   // Check for OAuth callback on mount
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const state = params.get('state');
@@ -382,6 +387,7 @@ export default function App() {
   const handleSocialLogin = async (provider) => {
     setLoginLoading(provider);
     
+    const OAUTH_CONFIG = getOAuthConfig();
     const config = OAUTH_CONFIG[provider];
     if (!config) {
       console.error('Unknown provider:', provider);
