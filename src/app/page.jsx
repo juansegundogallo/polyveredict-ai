@@ -57,6 +57,7 @@ const Star = ({className}) => <svg className={className} viewBox="0 0 24 24" fil
 const Globe = ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>;
 
 export default function App() {
+  const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState('home');
   const [status, setStatus] = useState('idle');
   const [url, setUrl] = useState('');
@@ -77,8 +78,14 @@ export default function App() {
   const [subscribing, setSubscribing] = useState(false);
   const [subscribeError, setSubscribeError] = useState(null);
 
+  // Set mounted on client-side only
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Exit Intent Detection
   useEffect(() => {
+    if (!mounted) return;
     const handleMouseLeave = (e) => {
       // Only trigger if mouse leaves from the top of the viewport (closing tab behavior)
       if (e.clientY <= 0 && result && !exitIntentShown && !user) {
@@ -89,7 +96,7 @@ export default function App() {
     
     document.addEventListener('mouseleave', handleMouseLeave);
     return () => document.removeEventListener('mouseleave', handleMouseLeave);
-  }, [result, exitIntentShown, user]);
+  }, [result, exitIntentShown, user, mounted]);
 
   // Newsletter Subscribe Function
   const handleNewsletterSubscribe = async (e) => {
@@ -958,6 +965,24 @@ After searching, respond with ONLY this JSON (no other text):
   };
 
   useEffect(() => { if (page === 'leaderboard' && markets.length === 0) fetchLeaderboard(); }, [page]);
+
+  // Loading screen while mounting on client
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center" style={{ fontFamily: "monospace" }}>
+        <div className="text-center">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center animate-pulse">
+            <svg className="w-7 h-7 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/>
+              <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>
+            </svg>
+          </div>
+          <p className="text-emerald-400 font-bold">POLYVERDICT AI</p>
+          <p className="text-zinc-500 text-sm mt-2">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // THANK YOU PAGE
   if (page === 'thankyou') {
