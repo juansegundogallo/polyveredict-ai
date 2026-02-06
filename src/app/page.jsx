@@ -518,38 +518,22 @@ export default function App() {
     for (const line of boot) { await new Promise(r => setTimeout(r, 150)); setLines(p => [...p, line]); }
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          tools: [{ type: "web_search_20250305", name: "web_search" }],
-          messages: [{ role: "user", content: `Search for information about this Polymarket prediction market: ${url}
-
-I need you to find:
-1. The main question or title of this market
-2. The current leading outcome and its YES price/probability (as decimal 0.XX)
-3. Total trading volume
-4. Any relevant recent news about this topic
-
-IMPORTANT: This could be a binary Yes/No market OR a multi-outcome market (like sports with multiple teams). For multi-outcome markets, focus on the leading outcome.
-
-After searching, respond with ONLY this JSON (no other text):
-{"market":{"question":"[main market question or title]","yesPrice":[leading probability as decimal like 0.23],"noPrice":[1 minus yesPrice],"volume":[total volume as number],"volume24hr":[24h volume or 0],"leadingOutcome":"[name of leading outcome if multi-market]"},"news":[{"title":"...","source":"...","description":"...","sentiment":"positive|negative|neutral"}]}` }]
-        })
+        body: JSON.stringify({ url })
       });
       
       const data = await res.json();
       
+      // Handle errors
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       // Handle rate limit errors
       if (data.type === 'exceeded_limit' || data.type === 'rate_limit_error') {
         throw new Error('API rate limit reached. Please try again in a few minutes.');
-      }
-      
-      // Handle other API errors
-      if (data.error) {
-        throw new Error(data.error.message || 'API error occurred. Please try again.');
       }
       
       // Handle non-200 responses
@@ -916,18 +900,14 @@ After searching, respond with ONLY this JSON (no other text):
     ];
     
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          tools: [{ type: "web_search_20250305", name: "web_search" }],
-          messages: [{ role: "user", content: `Search for the top 20 most active/trending prediction markets on Polymarket right now. Return ONLY a JSON array with this format (no other text):
-[{"question":"market question","slug":"url-slug","yesPrice":0.XX,"volume":NUMBER}]` }]
-        })
-      });
+      const res = await fetch("/api/leaderboard");
       const data = await res.json();
+      
+      // Handle errors - use fallback
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       let text = data.content?.map(b => b.type === 'text' ? b.text : '').join('') || '';
       const match = text.match(/\[[\s\S]*\]/);
       
@@ -1938,3 +1918,4 @@ After searching, respond with ONLY this JSON (no other text):
     </div>
   );
 }
+
